@@ -1,3 +1,9 @@
 /.idea
 
 **/build
+
+**/node_modules
+
+/backend/types/truffle-contracts
+/backend/migrations/**/*.js
+/backend/migrations/**/*.map
