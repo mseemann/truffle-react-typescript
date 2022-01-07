@@ -4,11 +4,11 @@
   "license": "MIT",
   "scripts": {
     "generate-types": "typechain --target=truffle-v5 './build/contracts/*.json'",
-    "generate-types-client": "./node_modules/.bin/typechain --target=web3-v1 './build/contracts/*.json'",
+    "generate-types-client": "typechain --target=web3-v1 './build/contracts/*.json'",
     "postinstall": "truffle compile && yarn generate-types && yarn generate-types-client",
     "migrate": "tsc -p ./tsconfig.migrate.json --outDir migrations && truffle migrate",
     "test": "truffle test",
-    "ganache-cli": "./node_modules/.bin/ganache-cli -p 7545 --gasLimit=0x1fffffffffffff --allowUnlimitedContractSize -e 1000000000 > /dev/null &",
+    "ganache-cli": "ganache-cli -p 7545 --gasLimit=0x1fffffffffffff --allowUnlimitedContractSize -e 1000000000 > /dev/null &",
     "coverage": "truffle run coverage",
     "typecheck": "tsc --noEmit"
   },
