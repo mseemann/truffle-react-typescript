@@ -1,0 +1,111 @@
+# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Truffle React Typescript CI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  prepare-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install Deps
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
+        run: yarn install --immutable --immutable-cache --check-cache
+
+  backend:
+    runs-on: ubuntu-latest
+    needs: prepare-dependencies
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+    - uses: actions/cache@v2
+      id: yarn-cache
+      with:
+        path: '**/node_modules'
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
+    - name: Run Postinstall
+      if: steps.yarn-cache.outputs.cache-hit == 'true'
+      run: yarn workspace backend postinstall
+    - name: Start ganache
+      run: |
+        yarn workspace backend ganache-cli
+        while netstat -lnt | awk '$4 ~ /:7545/ {exit 1}'; do sleep 5; done
+    - name: Contract Migration
+      run: yarn workspace backend migrate
+    - name: Conract Test
+      run: yarn workspace backend test
+    - name: Contract Coverage
+      run: yarn workspace backend coverage
+    - name: Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        flag-name: Backend
+        path-to-lcov: ./backend/coverage/lcov.info
+        parallel: true
+    - name: Stop ganache
+      run: kill $(lsof -t -i:7545)
+
+  client:
+    runs-on: ubuntu-latest
+    needs: prepare-dependencies
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Run Postinstall
+        if: steps.yarn-cache.outputs.cache-hit == 'true'
+        run: yarn workspace backend postinstall
+      - name: Test Client
+        run: yarn workspace client test
+      - name: Client Coverage
+        run: yarn workspace client coverage
+      - name: Client Build
+        run: yarn workspace client build
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          flag-name: Client
+          path-to-lcov: ./client/coverage/lcov.info
+          parallel: true
+          base-path: ./client
+
+  finish:
+    needs: [backend, client]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel-finished: true
