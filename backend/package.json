@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "generate-types": "typechain --target=truffle-v5 './build/contracts/*.json'",
-    "postinstall": "truffle compile && yarn generate-types",
+    "generate-types-client": "./node_modules/.bin/typechain --target=web3-v1 './build/contracts/*.json'",
+    "postinstall": "truffle compile && yarn generate-types && yarn generate-types-client",
     "migrate": "tsc -p ./tsconfig.migrate.json --outDir migrations && truffle migrate",
     "test": "truffle test",
     "coverage": "truffle run coverage",
@@ -12,6 +13,7 @@
   },
   "devDependencies": {
     "@typechain/truffle-v5": "^6.0.0",
+    "@typechain/web3-v1": "^4.0.0",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",
