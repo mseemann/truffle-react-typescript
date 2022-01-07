@@ -4,6 +4,9 @@
 
 **/node_modules
 
+**/coverage
+
 /backend/types/truffle-contracts
 /backend/migrations/**/*.js
 /backend/migrations/**/*.map
+/backend/coverage.json
