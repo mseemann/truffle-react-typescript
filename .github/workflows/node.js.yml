@@ -44,7 +44,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-yarn-
     - name: Run Postinstall
-      if: steps.yarn-cache.outputs.cache-hit == 'true'
       run: yarn workspace backend postinstall
     - name: Start ganache
       run: |
@@ -83,7 +82,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - name: Run Postinstall
-        if: steps.yarn-cache.outputs.cache-hit == 'true'
         run: yarn workspace backend postinstall
       - name: Test Client
         run: yarn workspace client test
